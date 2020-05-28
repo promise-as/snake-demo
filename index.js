@@ -1,10 +1,11 @@
 // 地图
 var map = document.querySelector('#map');
-var head = createDiv('red');
-head.value = '下'; // 方向
-var food = createDiv('blue');
+var headNode = createDiv('red');
+headNode.value = '右'; // 方向
+var foodNode = createDiv('blue');
 var bodyNodes = [];
-var t = setInterval(move, 500);
+var time = 500;
+var t = setInterval(move, time); 
 function createDiv(color) {
   var div = document.createElement('div');
   div.style.background = color;
@@ -15,31 +16,24 @@ function createDiv(color) {
 }
 function move() {
   // 蛇头移动
-  switch (head.value) {
+  switch (headNode.value) {
     case '左':
-      head.style.left = parseInt(head.style.left) - 50 + 'px';
+      headNode.style.left = parseInt(headNode.style.left) - 50 + 'px';
       break;
     case '右':
-      head.style.left = parseInt(head.style.left) + 50 + 'px';
+      headNode.style.left = parseInt(headNode.style.left) + 50 + 'px';
       break;
     case '上':
-      head.style.top = parseInt(head.style.top) - 50 + 'px';
+      headNode.style.top = parseInt(headNode.style.top) - 50 + 'px';
       break;
     case '下':
-      head.style.top = parseInt(head.style.top) + 50 + 'px';
+      headNode.style.top = parseInt(headNode.style.top) + 50 + 'px';
       break;
   }
-  // 撞墙了
-  if (parseInt(head.style.left) < 0 || parseInt(head.style.left) > 450 || parseInt(head.style.top) < 0 || parseInt(head.style.top) > 450) {
-    clearInterval(t);
-    console.log('撞墙了');
-  }
-  
+
   // 蛇身移动
-  if (bodyNodes.length > 0) {
-    // 倒序
-    for (var i = bodyNodes.length - 1; i >= 0; i--) {
-      // 蛇身正确位置排列
+  if(bodyNodes.length > 0){
+    for(var i = bodyNodes.length - 1; i >= 0; i--){
       switch (bodyNodes[i].value) {
         case '左':
           bodyNodes[i].style.left = parseInt(bodyNodes[i].style.left) - 50 + 'px';
@@ -54,60 +48,111 @@ function move() {
           bodyNodes[i].style.top = parseInt(bodyNodes[i].style.top) + 50 + 'px';
           break;
       }
-      // 只有一个身体
+      // 改变bodyNodes[i]的value
       if(i == 0){
-        bodyNodes[i].value = head.value;
+        bodyNodes[i].value = headNode.value;
       }else{
-        bodyNodes[i].value = bodyNodes[i - 1].value;
+        bodyNodes[i].value = bodyNodes[i - 1].value
       }
     }
   }
+  
   // 吃食物
-  if (head.style.left == food.style.left && head.style.top == food.style.top) {
-    var aNode = createDiv('yellow');
+  if(headNode.style.left == foodNode.style.left && headNode.style.top == foodNode.style.top){
+    var bodyNode = createDiv('yellow');
     var lastNode = null;
-    if (bodyNodes.length > 0) {
+    if(bodyNodes.length > 0){
       lastNode = bodyNodes[bodyNodes.length - 1];
-    } else {
-      lastNode = head
+    }else{
+      lastNode = headNode;
     }
-    aNode.value = lastNode.value;
-    bodyNodes.push(aNode);
-    // 蛇身显示一行或一竖
+    // 蛇身出现的位置；如果lastNode向左，bodyNode出现在其右侧
     switch (lastNode.value) {
       case '左':
-        aNode.style.left = parseInt(lastNode.style.left) + 50 + 'px';
-        aNode.style.top = lastNode.style.top;
+        bodyNode.style.left = parseInt(lastNode.style.left) + 50 + 'px';
+        bodyNode.style.top = lastNode.style.top;
         break;
       case '右':
-        aNode.style.left = parseInt(lastNode.style.left) - 50 + 'px';
-        aNode.style.top = lastNode.style.top;
+        bodyNode.style.left = parseInt(lastNode.style.left) - 50 + 'px';
+        bodyNode.style.top = lastNode.style.top;
         break;
       case '上':
-        aNode.style.top = parseInt(lastNode.style.top) + 50 + 'px';
-        aNode.style.left = lastNode.style.left;
+        bodyNode.style.top = parseInt(lastNode.style.top) + 50 + 'px';
+        bodyNode.style.left = lastNode.style.left;
         break;
       case '下':
-        aNode.style.top = parseInt(lastNode.style.top) - 50 + 'px';
-        aNode.style.left = lastNode.style.left;
+        bodyNode.style.top = parseInt(lastNode.style.top) - 50 + 'px';
+        bodyNode.style.left = lastNode.style.left;
         break;
     }
+    // 改变bodyNode的value
+    bodyNode.value = lastNode.value;
+    bodyNodes.push(bodyNode);
+    // 改变食物的位置
+    var x = parseInt(Math.random() * 10) * 50;
+    var y = parseInt(Math.random() * 10) * 50;
+    // 食物与蛇身是否重合
+    for(var i = 0; i < bodyNodes.length; i++){
+      if(foodNode.style.left == bodyNodes[i].style.left && foodNode.style.top == bodyNodes[i].style.top){
+        x = parseInt(Math.random() * 10) * 50;
+        y = parseInt(Math.random() * 10) * 50;
+        // 比如蛇身有两个黄色小块，食物与第一个重合了，就重新检测
+        i = -1;
+      }
+    }
+    foodNode.style.left = x + 'px';
+    foodNode.style.top = y + 'px';
   }
-  
+
+  // 是否超出边界
+  if(parseInt(headNode.style.left) < 0 || parseInt(headNode.style.left) > 450 || parseInt(headNode.style.top) < 0 || parseInt(headNode.style.top) > 450){
+    clearInterval(t);
+    alert('撞墙了')
+  }
+
+  // 是否咬到身体
+  if(bodyNodes.length > 0){
+    for(var i = 0; i < bodyNodes.length; i++){
+      if(headNode.style.left == bodyNodes[i].style.left && headNode.style.top == bodyNodes[i].style.top){
+        clearInterval(t);
+        alert('咬到身体了');
+      }
+    }
+  }
+
+  // 计分
+  document.querySelector('#score').innerHTML = bodyNodes.length * 10;
 }
 document.onkeydown = function (e) {
   switch (e.keyCode) {
     case 37:
-      head.value = '左';
+      if(headNode.value != '右' || bodyNodes.length == 0){
+        headNode.value = '左';
+      }
       break;
     case 38:
-      head.value = '上';
+      if(headNode.value != '下' || bodyNodes.length == 0){
+        headNode.value = '上';
+      }
       break;
     case 39:
-      head.value = '右';
+      if(headNode.value != '左' || bodyNodes.length == 0){
+        headNode.value = '右';
+      }
       break;
     case 40:
-      head.value = '下';
+      if(headNode.value != '上' || bodyNodes.length == 0){
+        headNode.value = '下';
+      }
       break;
   }
 }
+function clickHandle(btn, time){
+  document.querySelector(btn).onclick = function(){
+    clearInterval(t);
+    setInterval(move, time);
+  }
+}
+clickHandle('#fast', 300);
+clickHandle('#middle', 500);
+clickHandle('#slow', 1000);
